@@ -59,6 +59,9 @@ radio.onReceivedValue(function (name, value) {
         }
     }
 })
+input.onLogoEvent(TouchButtonEvent.Pressed, function () {
+	
+})
 function turnAllWheels (theAngle: number) {
     neZha.setServoAngle(neZha.ServoTypeList._360, neZha.ServoList.S1, theAngle)
     neZha.setServoAngle(neZha.ServoTypeList._360, neZha.ServoList.S2, theAngle)
@@ -73,7 +76,45 @@ function spinAllWheels (speedPercent: number, durationMs: number) {
     basic.pause(durationMs)
     neZha.stopAllMotor()
 }
+let hits = 0
+let lastHitWasRed = false
+let isRed = false
 radio.setGroup(80)
 Connected.oledClear()
 turnAllWheels(0)
 basic.showArrow(ArrowNames.South)
+let strip = Connected.create(Connected.DigitalRJPin.J3, 8, Connected.NeoPixelMode.RGB)
+strip.setBrightness(255)
+strip.showColor(Connected.colors(Connected.NeoPixelColors.Red))
+let hitsRequired = 2
+Connected.MP3SetPort(Connected.DigitalRJPin.J4)
+Connected.setVolume(15)
+Connected.folderPlay("01", "007")
+basic.pause(2000)
+strip.setBrightness(20)
+strip.showColor(Connected.colors(Connected.NeoPixelColors.Yellow))
+Connected.execute(Connected.playType.Stop)
+basic.forever(function () {
+    isRed = Connected.checkColor(Connected.ColorList.red)
+    Connected.showUserText(8, convertToText(isRed))
+    if (isRed) {
+        if (hits == hitsRequired) {
+            Connected.setVolume(20)
+            Connected.folderPlay("01", "004")
+            basic.showIcon(IconNames.Sad)
+            strip.showColor(Connected.colors(Connected.NeoPixelColors.Orange))
+        }
+        if (!(lastHitWasRed)) {
+            Connected.setVolume(25)
+            Connected.folderPlay("01", "001")
+            basic.showIcon(IconNames.Angry)
+        }
+        hits = hits + 1
+        Connected.showUserNumber(2, hits)
+    } else if (lastHitWasRed) {
+        basic.showIcon(IconNames.Happy)
+        hits = 0
+        strip.showColor(Connected.colors(Connected.NeoPixelColors.Black))
+    }
+    lastHitWasRed = isRed
+})
