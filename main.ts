@@ -1,27 +1,79 @@
-function raiseAlarm (duration: number) {
-    Connected.ledBrightness(Connected.DigitalRJPin.J3, true)
-    basic.pause(duration)
-    Connected.ledBrightness(Connected.DigitalRJPin.J3, false)
-}
-let thisRead = 0
-Connected.laserSensor(Connected.DigitalRJPin.J4, true)
-pins.setAudioPinEnabled(false)
-Connected.oledClear()
-radio.setGroup(80)
-let breaks = 0
-let lastRead = pins.analogReadPin(AnalogPin.P2)
-Connected.showUserNumber(6, lastRead)
-while (true) {
-    thisRead = pins.analogReadPin(AnalogPin.P2)
-    if (thisRead < 100) {
-        breaks = breaks + 1
-        raiseAlarm(500)
-        Connected.showUserNumber(3, breaks)
-        Connected.showUserNumber(4, lastRead)
-        Connected.showUserNumber(5, thisRead)
+radio.onReceivedValue(function (name, value) {
+    Connected.showUserText(1, name)
+    Connected.showUserNumber(2, value)
+    if (name == "joyCente") {
+        neZha.stopAllMotor()
+    } else if (name == "joyLeft") {
+        if (value >= 2) {
+            turnAllWheels(90)
+            basic.showArrow(ArrowNames.East)
+        } else {
+            neZha.stopAllMotor()
+        }
+    } else if (name == "joyRight") {
+        if (value >= 2) {
+            turnAllWheels(270)
+            basic.showArrow(ArrowNames.West)
+        } else {
+            neZha.stopAllMotor()
+        }
+    } else if (name == "joyUp") {
+        if (value >= 2) {
+            turnAllWheels(0)
+            basic.showArrow(ArrowNames.South)
+        } else {
+            neZha.stopAllMotor()
+        }
+    } else if (name == "joyDown") {
+        if (value >= 2) {
+            turnAllWheels(180)
+            basic.showArrow(ArrowNames.North)
+        } else {
+            neZha.stopAllMotor()
+        }
+    } else if (name == "joyButto") {
+        if (value == 5) {
+        	
+        } else if (value == 6) {
+        	
+        } else if (value == 2) {
+            spinAllWheels(50, 200)
+            spinAllWheels(70, 300)
+            spinAllWheels(50, 200)
+            spinAllWheels(20, 200)
+            spinAllWheels(10, 200)
+        } else if (value == 3) {
+            spinAllWheels(-50, 200)
+            spinAllWheels(-20, 200)
+            spinAllWheels(-10, 200)
+        } else if (value == 1) {
+            spinAllWheels(50, 200)
+            spinAllWheels(20, 200)
+            spinAllWheels(10, 200)
+        } else if (value == 4) {
+            spinAllWheels(50, 200)
+            spinAllWheels(20, 200)
+            spinAllWheels(10, 200)
+        } else {
+        	
+        }
     }
-    lastRead = thisRead
-}
-basic.forever(function () {
-	
 })
+function turnAllWheels (theAngle: number) {
+    neZha.setServoAngle(neZha.ServoTypeList._360, neZha.ServoList.S1, theAngle)
+    neZha.setServoAngle(neZha.ServoTypeList._360, neZha.ServoList.S2, theAngle)
+    neZha.setServoAngle(neZha.ServoTypeList._360, neZha.ServoList.S3, theAngle)
+    neZha.setServoAngle(neZha.ServoTypeList._360, neZha.ServoList.S4, theAngle)
+}
+function spinAllWheels (speedPercent: number, durationMs: number) {
+    neZha.setMotorSpeed(neZha.MotorList.M1, speedPercent)
+    neZha.setMotorSpeed(neZha.MotorList.M2, speedPercent)
+    neZha.setMotorSpeed(neZha.MotorList.M3, speedPercent * -1)
+    neZha.setMotorSpeed(neZha.MotorList.M4, speedPercent * -1)
+    basic.pause(durationMs)
+    neZha.stopAllMotor()
+}
+radio.setGroup(80)
+Connected.oledClear()
+turnAllWheels(0)
+basic.showArrow(ArrowNames.South)
